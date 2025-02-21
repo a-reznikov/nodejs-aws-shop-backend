@@ -1,5 +1,5 @@
 import * as cdk from "aws-cdk-lib";
-import { LambdaIntegration, RestApi } from "aws-cdk-lib/aws-apigateway";
+import { Cors, LambdaIntegration, RestApi } from "aws-cdk-lib/aws-apigateway";
 import { Code, Runtime, Function } from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 
@@ -13,7 +13,12 @@ export class AlexProductServiceStack extends cdk.Stack {
       handler: "getProductsList.handler",
     });
 
-    const api = new RestApi(this, "AlexProductServiceApi");
+    const api = new RestApi(this, "AlexProductServiceApi", {
+      defaultCorsPreflightOptions: {
+        allowOrigins: Cors.ALL_ORIGINS,
+        allowMethods: Cors.ALL_METHODS,
+      },
+    });
 
     const productsEndpoint = api.root.addResource("products");
 
