@@ -13,6 +13,12 @@ export class AlexProductServiceStack extends cdk.Stack {
       handler: "getProductsList.handler",
     });
 
+    const getProductById = new Function(this, "GetProductByIdHandler", {
+      runtime: Runtime.NODEJS_20_X,
+      code: Code.fromAsset("lambda"),
+      handler: "getProductsById.handler",
+    });
+
     const api = new RestApi(this, "AlexProductServiceApi", {
       defaultCorsPreflightOptions: {
         allowOrigins: Cors.ALL_ORIGINS,
@@ -21,7 +27,9 @@ export class AlexProductServiceStack extends cdk.Stack {
     });
 
     const productsEndpoint = api.root.addResource("products");
+    const productByIdEndpoint = productsEndpoint.addResource("{id}");
 
     productsEndpoint.addMethod("GET", new LambdaIntegration(getProductsList));
+    productByIdEndpoint.addMethod("GET", new LambdaIntegration(getProductById));
   }
 }
