@@ -3,7 +3,7 @@ import { products } from "./products/products";
 
 export const handler = async (event: any) => {
   try {
-    const id = event.pathParameters.productId;
+    const { id } = event.pathParameters;
     const product = products.find((product) => product.id === id);
 
     if (!product) {

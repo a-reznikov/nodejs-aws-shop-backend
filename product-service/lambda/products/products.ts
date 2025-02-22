@@ -2,39 +2,45 @@ import { Product } from "./types";
 
 export const products: Product[] = [
   {
-    description: "Short Product Description 1",
-    id: "7567ec4b-b10c-48c5-9345-fc73c48a80aa",
-    price: 24,
-    title: "Product Title 1",
+    description:
+      "A novel by George Orwell, depicting a dystopian future society.",
+    id: "1",
+    price: 12,
+    title: "1984",
   },
   {
-    description: "Short Product Description 2",
-    id: "7567ec4b-b10c-48c5-9345-fc73c48a80a1",
+    description:
+      "A classic novel by Harper Lee, exploring racial injustice in the American South.",
+    id: "2",
+    price: 10,
+    title: "To Kill a Mockingbird",
+  },
+  {
+    description:
+      "A fantasy novel by J.R.R. Tolkien, the first part of The Lord of the Rings series.",
+    id: "3",
     price: 15,
-    title: "Product Title 2",
+    title: "The Fellowship of the Ring",
   },
   {
-    description: "Short Product Description 3",
-    id: "7567ec4b-b10c-48c5-9345-fc73c48a80a3",
-    price: 23,
-    title: "Product Title 3",
+    description:
+      "A novel by F. Scott Fitzgerald, portraying the Jazz Age and the American Dream.",
+    id: "4",
+    price: 11,
+    title: "The Great Gatsby",
   },
   {
-    description: "Short Product Description 4",
-    id: "7567ec4b-b10c-48c5-9345-fc73348a80a1",
-    price: 15,
-    title: "Product Title 4",
+    description:
+      "A novel by J.D. Salinger, following the life of a disenchanted teenager.",
+    id: "5",
+    price: 9,
+    title: "The Catcher in the Rye",
   },
   {
-    description: "Short Product Description 5",
-    id: "7567ec4b-b10c-48c5-9445-fc73c48a80a2",
-    price: 23,
-    title: "Product Title 5",
-  },
-  {
-    description: "Short Product Description 6",
-    id: "7567ec4b-b10c-45c5-9345-fc73c48a80a1",
-    price: 15,
-    title: "Product Title 6",
+    description:
+      "A novel by Jane Austen, exploring themes of love, class, and reputation.",
+    id: "6",
+    price: 8,
+    title: "Pride and Prejudice",
   },
 ];
