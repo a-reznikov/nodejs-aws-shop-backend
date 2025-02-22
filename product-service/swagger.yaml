@@ -3,11 +3,11 @@ info:
   title: Product Service API
   version: 1.0.0
 servers:
-  - url: https://yc6f0b3hkh.execute-api.eu-central-1.amazonaws.com/prod/products
+  - url: https://yc6f0b3hkh.execute-api.eu-central-1.amazonaws.com/prod
 paths:
   /products:
     get:
-      summary: Get all prroducts
+      summary: Get all products
       operationId: getProductsList
       responses:
         "200":
