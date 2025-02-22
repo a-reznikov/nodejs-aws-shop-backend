@@ -16,7 +16,7 @@ export class AlexProductServiceStack extends cdk.Stack {
     const getProductById = new Function(this, "GetProductByIdHandler", {
       runtime: Runtime.NODEJS_20_X,
       code: Code.fromAsset("lambda"),
-      handler: "getProductsById.handler",
+      handler: "getProductById.handler",
     });
 
     const api = new RestApi(this, "AlexProductServiceApi", {

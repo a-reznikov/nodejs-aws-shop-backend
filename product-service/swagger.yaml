@@ -21,7 +21,7 @@ paths:
   /products/{id}:
     get:
       summary: Get product by ID
-      operationId: getProductsById
+      operationId: getProductById
       parameters:
         - in: path
           required: true
