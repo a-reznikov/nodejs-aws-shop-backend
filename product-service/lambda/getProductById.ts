@@ -1,5 +1,5 @@
 import { headers } from "./api/constants";
-import { products } from "./products/products";
+import { products } from "../db/products/products";
 
 export const handler = async (event: any) => {
   try {
