@@ -1,10 +1,44 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { headers } from "./api/constants";
-import { products } from "../db/products/products";
+import { handleUnexpectedError } from "./error-handler";
+
+const client = new DynamoDBClient({});
+const documentClient = DynamoDBDocumentClient.from(client);
 
 export const handler = async (event: any) => {
   try {
+    console.log("Event getProductById: ", event);
+
     const { id } = event.pathParameters;
-    const product = products.find((product) => product.id === id);
+
+    if (!id) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify("Product ID is required."),
+      };
+    }
+
+    const productTableName = process.env.DYNAMO_DB_PRODUCTS;
+    const stockTableName = process.env.DYNAMO_DB_STOCKS;
+
+    if (!(productTableName && stockTableName)) {
+      throw Error(
+        "Failed to process getProductById. Tables names are not defined!"
+      );
+    }
+
+    const { Item: product } = await documentClient.send(
+      new GetCommand({
+        TableName: productTableName,
+        Key: {
+          id,
+        },
+      })
+    );
+
+    console.log("Founded product: ", product);
 
     if (!product) {
       return {
@@ -14,16 +48,36 @@ export const handler = async (event: any) => {
       };
     }
 
+    const { Item: stock } = await documentClient.send(
+      new GetCommand({
+        TableName: stockTableName,
+        Key: {
+          product_id: id,
+        },
+      })
+    );
+
+    console.log("Founded stock: ", stock);
+
+    if (!stock) {
+      return {
+        statusCode: 404,
+        headers,
+        body: JSON.stringify(`Stock was not found for product with id ${id}`),
+      };
+    }
+
+    const productData = {
+      ...product,
+      count: stock.count,
+    };
+
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify(product),
+      body: JSON.stringify(productData),
     };
   } catch (error: any) {
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify(error.message),
-    };
+    return handleUnexpectedError(error, "getProductById");
   }
 };
