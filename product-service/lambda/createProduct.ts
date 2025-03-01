@@ -17,7 +17,8 @@ export const handler = async (event: any) => {
   try {
     console.log("Event createProduct: ", event);
 
-    const { title, description, price, count } = event.body;
+    const body = JSON.parse(event?.body || "{}");
+    const { title, description, price, count } = body;
 
     if (!isValidProductCreateData({ title, description, price, count })) {
       return {
