@@ -57,6 +57,19 @@ export class AlexProductServiceStack extends cdk.Stack {
     productsTable.grantReadData(getProductById);
     stocksTable.grantReadData(getProductById);
 
+    const createProduct = new Function(this, "CreateProductHandler", {
+      runtime: Runtime.NODEJS_20_X,
+      code: Code.fromAsset("lambda"),
+      handler: "createProduct.handler",
+      environment: {
+        DYNAMO_DB_PRODUCTS: productsTableName,
+        DYNAMO_DB_STOCKS: stocksTableName,
+      },
+    });
+
+    productsTable.grantReadWriteData(createProduct);
+    stocksTable.grantReadWriteData(createProduct);
+
     const api = new RestApi(this, "AlexProductServiceApi", {
       defaultCorsPreflightOptions: {
         allowOrigins: Cors.ALL_ORIGINS,
@@ -68,6 +81,7 @@ export class AlexProductServiceStack extends cdk.Stack {
     const productByIdEndpoint = productsEndpoint.addResource("{id}");
 
     productsEndpoint.addMethod("GET", new LambdaIntegration(getProductsList));
+    productsEndpoint.addMethod("POST", new LambdaIntegration(createProduct));
     productByIdEndpoint.addMethod("GET", new LambdaIntegration(getProductById));
   }
 }
