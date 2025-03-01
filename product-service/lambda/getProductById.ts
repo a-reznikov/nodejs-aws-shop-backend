@@ -20,10 +20,10 @@ export const handler = async (event: any) => {
       };
     }
 
-    const productTableName = process.env.DYNAMO_DB_PRODUCTS;
-    const stockTableName = process.env.DYNAMO_DB_STOCKS;
+    const productsTableName = process.env.DYNAMO_DB_PRODUCTS;
+    const stocksTableName = process.env.DYNAMO_DB_STOCKS;
 
-    if (!(productTableName && stockTableName)) {
+    if (!(productsTableName && stocksTableName)) {
       throw Error(
         "Failed to process getProductById. Tables names are not defined!"
       );
@@ -31,7 +31,7 @@ export const handler = async (event: any) => {
 
     const { Item: product } = await documentClient.send(
       new GetCommand({
-        TableName: productTableName,
+        TableName: productsTableName,
         Key: {
           id,
         },
@@ -50,7 +50,7 @@ export const handler = async (event: any) => {
 
     const { Item: stock } = await documentClient.send(
       new GetCommand({
-        TableName: stockTableName,
+        TableName: stocksTableName,
         Key: {
           product_id: id,
         },

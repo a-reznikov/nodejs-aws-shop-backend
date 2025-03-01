@@ -9,6 +9,7 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
+    "cdk:deploy": "npm run build && cdk deploy",
     "fill-db": "ts-node utils/db/fill-db.ts"
   },
   "devDependencies": {

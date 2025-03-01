@@ -8,20 +8,20 @@ const documentClient = DynamoDBDocumentClient.from(client);
 
 export const handler = async () => {
   try {
-    const productTableName = process.env.DYNAMO_DB_PRODUCTS;
-    const stockTableName = process.env.DYNAMO_DB_STOCKS;
+    const productsTableName = process.env.DYNAMO_DB_PRODUCTS;
+    const stocksTableName = process.env.DYNAMO_DB_STOCKS;
 
-    if (!(productTableName && stockTableName)) {
+    if (!(productsTableName && stocksTableName)) {
       throw Error(
         "Failed to process getProductById. Tables names are not defined!"
       );
     }
 
     const { Items: products } = await documentClient.send(
-      new ScanCommand({ TableName: productTableName })
+      new ScanCommand({ TableName: productsTableName })
     );
     const { Items: stocks } = await documentClient.send(
-      new ScanCommand({ TableName: stockTableName })
+      new ScanCommand({ TableName: stocksTableName })
     );
 
     const productData = products?.map((product) => ({
