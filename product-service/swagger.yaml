@@ -18,6 +18,45 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Product"
+    post:
+      summary: Create a new product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: The product name
+                description:
+                  type: string
+                  description: The product description
+                price:
+                  type: integer
+                  description: The product price
+                count:
+                  type: integer
+                  description: The number of products in stock
+              required:
+                - title
+                - description
+                - price
+                - count
+      responses:
+        "201":
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: New product has been created
+                  product:
+                    $ref: "#/components/schemas/Product"
   /products/{id}:
     get:
       summary: Get product by ID
