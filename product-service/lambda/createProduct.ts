@@ -8,7 +8,7 @@ import {
   handleUnexpectedError,
   isValidProductCreateData,
 } from "./error-handler";
-import { v4 as uuid } from "uuid";
+import { randomUUID } from "crypto";
 
 const client = new DynamoDBClient({});
 const documentClient = DynamoDBDocumentClient.from(client);
@@ -28,7 +28,7 @@ export const handler = async (event: any) => {
       };
     }
 
-    const id = uuid();
+    const id = randomUUID();
 
     const newProduct = { id, title, description, price };
     const newStock = { product_id: id, count };
