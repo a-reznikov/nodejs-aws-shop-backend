@@ -4,6 +4,7 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 import { Code, Runtime, Function } from "aws-cdk-lib/aws-lambda";
 import { Cors, LambdaIntegration, RestApi } from "aws-cdk-lib/aws-apigateway";
+import { LambdaDestination } from "aws-cdk-lib/aws-s3-notifications";
 
 export class AlexImportServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -15,7 +16,11 @@ export class AlexImportServiceStack extends cdk.Stack {
       cors: [
         {
           allowedOrigins: ["*"],
-          allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.PUT],
+          allowedMethods: [
+            s3.HttpMethods.GET,
+            s3.HttpMethods.PUT,
+            s3.HttpMethods.DELETE,
+          ],
           allowedHeaders: ["*"],
         },
       ],
@@ -41,6 +46,30 @@ export class AlexImportServiceStack extends cdk.Stack {
     });
 
     importProductsFileLambda.addToRolePolicy(importProductsPolicy);
+
+    const importFileParserLambda = new Function(
+      this,
+      "importFileParserHandler",
+      {
+        runtime: Runtime.NODEJS_20_X,
+        code: Code.fromAsset("lambda"),
+        handler: "importFileParser.handler",
+      }
+    );
+
+    const importFileParserPolicy = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
+      resources: [bucket.bucketArn + "/*"],
+    });
+
+    importFileParserLambda.addToRolePolicy(importFileParserPolicy);
+
+    bucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new LambdaDestination(importFileParserLambda),
+      { prefix: "uploaded/" }
+    );
 
     const api = new RestApi(this, "AlexImportServiceApi", {
       restApiName: "AlexImportServiceApi",
