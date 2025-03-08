@@ -27,9 +27,13 @@ export const handler = async (event: S3Event) => {
 
       const objectCommandParams = { Bucket: bucketName, Key: key };
 
-      const { Body: file } = await s3Client.send(
+      const getObjectResponse = await s3Client.send(
         new GetObjectCommand(objectCommandParams)
       );
+
+      console.log("getObjectResponse", getObjectResponse);
+
+      const { Body: file } = getObjectResponse;
 
       if (!(file && file instanceof Readable)) {
         throw Error(

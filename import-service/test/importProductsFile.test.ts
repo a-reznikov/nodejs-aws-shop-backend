@@ -15,14 +15,13 @@ jest.mock("@aws-sdk/s3-request-presigner", () => ({
 }));
 
 describe("importProductsFile Lambda", () => {
-  const event = {
+  const mockEvent = {
     queryStringParameters: {
       name: "mock-file-name.csv",
     },
   };
   const MOCK_BUCKET_NAME = "mock-bucket-name";
-
-  const mockSignedUrl = "https://mock-signed-url.com/uploaded";
+  const MOCK_SIGNED_URL = "https://mock-signed-url.com/uploaded";
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -42,7 +41,7 @@ describe("importProductsFile Lambda", () => {
   it("should return 500 if importServiceBucketName is not defined", async () => {
     const importServiceBucketName = process.env.IMPORT_SERVICE_BUCKET_NAME;
 
-    const result = await handler(event);
+    const result = await handler(mockEvent);
 
     expect(importServiceBucketName).toBeUndefined();
     expect(result.statusCode).toBe(500);
@@ -58,12 +57,12 @@ describe("importProductsFile Lambda", () => {
   it("should return a signed URL", async () => {
     process.env.IMPORT_SERVICE_BUCKET_NAME = MOCK_BUCKET_NAME;
 
-    (getSignedUrl as jest.Mock).mockResolvedValue(mockSignedUrl);
+    (getSignedUrl as jest.Mock).mockResolvedValue(MOCK_SIGNED_URL);
 
-    const result = await handler(event);
+    const result = await handler(mockEvent);
 
     expect(result.statusCode).toBe(200);
-    expect(result.body).toBe(mockSignedUrl);
+    expect(result.body).toBe(MOCK_SIGNED_URL);
   });
 
   it("should handle decoding the file name properly", async () => {
@@ -74,12 +73,12 @@ describe("importProductsFile Lambda", () => {
     };
 
     process.env.IMPORT_SERVICE_BUCKET_NAME = MOCK_BUCKET_NAME;
-    (getSignedUrl as jest.Mock).mockResolvedValue(mockSignedUrl);
+    (getSignedUrl as jest.Mock).mockResolvedValue(MOCK_SIGNED_URL);
 
     const result = await handler(eventWithEncodedFileName);
 
     expect(result.statusCode).toBe(200);
-    expect(result.body).toBe(mockSignedUrl);
+    expect(result.body).toBe(MOCK_SIGNED_URL);
     expect(PutObjectCommand).toHaveBeenCalledWith({
       Bucket: MOCK_BUCKET_NAME,
       Key: "uploaded/mock file name.csv",
