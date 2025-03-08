@@ -27,9 +27,12 @@ export const handler = async (event: any) => {
       );
     }
 
+    const decodedFileName = decodeURIComponent(fileName.replace(/\+/g, " "));
+    console.log("decodedFileName", decodedFileName);
+
     const command = new PutObjectCommand({
       Bucket: importServiceBucketName,
-      Key: `uploaded/${fileName}`,
+      Key: `uploaded/${decodedFileName}`,
       ContentType: "text/csv",
     });
 
