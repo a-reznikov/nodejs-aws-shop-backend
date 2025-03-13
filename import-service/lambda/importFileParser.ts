@@ -9,12 +9,22 @@ import { handleUnexpectedError } from "./error-handler";
 import { S3Event } from "aws-lambda";
 import * as csvParser from "csv-parser";
 import { Readable } from "node:stream";
+import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 
 const s3Client = new S3Client({ region: "eu-central-1" });
+const sqsClient = new SQSClient({ region: "eu-central-1" });
 
 export const handler = async (event: S3Event) => {
   try {
     console.log("Event importFileParser:", event);
+    const catalogItemsQueueUrl = process.env.CATALOG_ITEM_QUEUE_URL;
+
+    if (!catalogItemsQueueUrl) {
+      throw Error(
+        "Failed to process importFileParser. Environment variables are not defined!"
+      );
+    }
+
     const records = event.Records;
 
     for (const record of records) {
@@ -46,7 +56,22 @@ export const handler = async (event: S3Event) => {
 
         readableStream
           .pipe(csvParser())
-          .on("data", console.log)
+          .on("data", async (row) => {
+            try {
+              const message = JSON.stringify(row);
+              console.log("Sending row to SQS:", message);
+
+              const messageParams = {
+                QueueUrl: catalogItemsQueueUrl,
+                MessageBody: message,
+              };
+
+              await sqsClient.send(new SendMessageCommand(messageParams));
+            } catch (err) {
+              console.error("Error sending row to SQS", err);
+              reject(err);
+            }
+          })
           .on("error", (error) => reject(error))
           .on("end", async () => {
             const copyObjectCommandParams = {
