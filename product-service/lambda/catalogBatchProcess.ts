@@ -11,7 +11,7 @@ import {
 } from "./error-handler";
 import { randomUUID } from "crypto";
 import { SQSEvent } from "aws-lambda";
-import { SNSClient } from "@aws-sdk/client-sns";
+import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
 
 const dynamoDBClient = new DynamoDBClient({ region: "eu-central-1" });
 const dynamoDBDocumentClient = DynamoDBDocumentClient.from(dynamoDBClient);
@@ -23,19 +23,37 @@ export const handler = async (event: SQSEvent) => {
 
     const productsTableName = process.env.DYNAMO_DB_PRODUCTS;
     const stocksTableName = process.env.DYNAMO_DB_STOCKS;
+    const createProductTopicArn = process.env.CREATE_PRODUCT_TOPIC_ARN;
 
-    if (!(productsTableName && stocksTableName)) {
+    if (!(productsTableName && stocksTableName && createProductTopicArn)) {
+      console.log(
+        "Environment variables:",
+        JSON.stringify({
+          productsTableName,
+          stocksTableName,
+          createProductTopicArn,
+        })
+      );
+
       throw Error(
-        "Failed to process getProductById. Tables names are not defined!"
+        "Failed to process catalogBatchProcess. Environment variables are not defined!"
       );
     }
 
     const dynamoDBTransactItems: TransactWriteItem[] = [];
+    const snsItems = [];
 
     for (const sqsRecord of event.Records) {
       const incomingProductData = JSON.parse(sqsRecord?.body || "{}");
 
       if (!isValidProductCreateData(incomingProductData)) {
+        console.log(
+          "Invalid incomingProductData:",
+          JSON.stringify({
+            incomingProductData,
+          })
+        );
+
         return {
           statusCode: 400,
           headers,
@@ -45,7 +63,7 @@ export const handler = async (event: SQSEvent) => {
 
       const { title, description, price, count } = incomingProductData;
 
-      const id = String(randomUUID());
+      const id = randomUUID();
 
       const newProduct = {
         id,
@@ -73,6 +91,13 @@ export const handler = async (event: SQSEvent) => {
       };
 
       dynamoDBTransactItems.push(putProduct, putStock);
+
+      const snsItem = {
+        ...newProduct,
+        count: newStock.count,
+      };
+
+      snsItems.push(snsItem);
     }
 
     await dynamoDBDocumentClient.send(
@@ -81,14 +106,30 @@ export const handler = async (event: SQSEvent) => {
       })
     );
 
+    const message = `New product${
+      snsItems.length > 1 ? "s have" : " has"
+    } been added to db`;
+
+    await snsClient.send(
+      new PublishCommand({
+        Subject: "Product Notification",
+        TopicArn: createProductTopicArn,
+        Message: JSON.stringify({
+          message,
+          products: snsItems,
+          count: snsItems.length,
+        }),
+      })
+    );
+
     return {
       statusCode: 201,
       headers,
       body: JSON.stringify({
-        message: "New product has been created",
+        message,
       }),
     };
   } catch (error: any) {
-    return handleUnexpectedError(error, "createProduct");
+    return handleUnexpectedError(error, "catalogBatchProcess");
   }
 };
