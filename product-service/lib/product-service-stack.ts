@@ -125,6 +125,8 @@ export class AlexProductServiceStack extends cdk.Stack {
     stocksTable.grantReadData(getProductById);
     productsTable.grantReadWriteData(createProduct);
     stocksTable.grantReadWriteData(createProduct);
+    productsTable.grantReadWriteData(catalogBatchProcess);
+    stocksTable.grantReadWriteData(catalogBatchProcess);
 
     const api = new RestApi(this, "AlexProductServiceApi", {
       defaultCorsPreflightOptions: {

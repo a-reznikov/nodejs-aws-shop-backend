@@ -59,7 +59,11 @@ export const handler = async (event: S3Event) => {
           .pipe(csvParser())
           .on("data", async (row) => {
             try {
-              const message = JSON.stringify(row);
+              const message = JSON.stringify({
+                ...row,
+                price: Number(row?.price),
+                count: Number(row?.count),
+              });
               console.log("Sending row to SQS:", message);
 
               const command = {
@@ -67,7 +71,14 @@ export const handler = async (event: S3Event) => {
                 MessageBody: message,
               };
 
-              await sqsClient.send(new SendMessageCommand(command));
+              console.log("SendMessage command", JSON.stringify(command));
+
+              console.log("Sending...");
+              const sendMessageCommandOutput = await sqsClient.send(
+                new SendMessageCommand(command)
+              );
+
+              console.log("SendMessageCommandOutput", sendMessageCommandOutput);
             } catch (err) {
               console.error("Error sending row to SQS", err);
               reject(err);
@@ -102,9 +113,7 @@ export const handler = async (event: S3Event) => {
       });
     }
 
-    console.log(
-      "Execution of the importFileParser lambda has been successfully completed."
-    );
+    console.log("The importFileParser lambda was successfully executed.");
 
     return {
       statusCode: 200,

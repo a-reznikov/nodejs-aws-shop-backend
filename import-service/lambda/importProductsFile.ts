@@ -38,6 +38,8 @@ export const handler = async (event: any) => {
 
     const signedUrl = await getSignedUrl(client, command);
 
+    console.log("The importProductsFile lambda was successfully executed.");
+
     return {
       statusCode: 200,
       headers,

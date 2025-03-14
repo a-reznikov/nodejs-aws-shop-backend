@@ -46,15 +46,14 @@ export const handler = async (event: SQSEvent) => {
 
     for (const sqsRecord of event.Records) {
       const incomingProductData = JSON.parse(sqsRecord?.body || "{}");
+      console.log(
+        "IncomingProductData:",
+        JSON.stringify({
+          incomingProductData,
+        })
+      );
 
       if (!isValidProductCreateData(incomingProductData)) {
-        console.log(
-          "Invalid incomingProductData:",
-          JSON.stringify({
-            incomingProductData,
-          })
-        );
-
         return {
           statusCode: 400,
           headers,
