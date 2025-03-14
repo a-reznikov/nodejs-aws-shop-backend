@@ -1,3 +1,4 @@
+import * as dotenv from "dotenv";
 import * as cdk from "aws-cdk-lib";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as iam from "aws-cdk-lib/aws-iam";
@@ -7,13 +8,22 @@ import { Cors, LambdaIntegration, RestApi } from "aws-cdk-lib/aws-apigateway";
 import { LambdaDestination } from "aws-cdk-lib/aws-s3-notifications";
 import { Queue } from "aws-cdk-lib/aws-sqs";
 
-const catalogItemsQueueArn = process.env.CATALOG_ITEM_QUEUE_ARN;
+dotenv.config();
 
 export class AlexImportServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    const catalogItemsQueueArn = process.env.CATALOG_ITEM_QUEUE_ARN;
+
     if (!catalogItemsQueueArn) {
+      console.log(
+        "Environment variables:",
+        JSON.stringify({
+          isCatalogItemsQueueArn: Boolean(catalogItemsQueueArn),
+        })
+      );
+
       throw Error(
         "Failed to create AlexImportServiceStack. Environment variables are not defined!"
       );

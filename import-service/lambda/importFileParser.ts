@@ -17,6 +17,7 @@ const sqsClient = new SQSClient({ region: "eu-central-1" });
 export const handler = async (event: S3Event) => {
   try {
     console.log("Event importFileParser:", event);
+
     const catalogItemsQueueUrl = process.env.CATALOG_ITEM_QUEUE_URL;
 
     if (!catalogItemsQueueUrl) {
@@ -61,12 +62,12 @@ export const handler = async (event: S3Event) => {
               const message = JSON.stringify(row);
               console.log("Sending row to SQS:", message);
 
-              const messageParams = {
+              const command = {
                 QueueUrl: catalogItemsQueueUrl,
                 MessageBody: message,
               };
 
-              await sqsClient.send(new SendMessageCommand(messageParams));
+              await sqsClient.send(new SendMessageCommand(command));
             } catch (err) {
               console.error("Error sending row to SQS", err);
               reject(err);
@@ -100,6 +101,10 @@ export const handler = async (event: S3Event) => {
           });
       });
     }
+
+    console.log(
+      "Execution of the importFileParser lambda has been successfully completed."
+    );
 
     return {
       statusCode: 200,

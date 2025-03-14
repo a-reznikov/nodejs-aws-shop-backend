@@ -12,6 +12,7 @@ import {
 import { randomUUID } from "crypto";
 import { SQSEvent } from "aws-lambda";
 import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
+import { SnsItem } from "./api/types";
 
 const dynamoDBClient = new DynamoDBClient({ region: "eu-central-1" });
 const dynamoDBDocumentClient = DynamoDBDocumentClient.from(dynamoDBClient);
@@ -29,9 +30,9 @@ export const handler = async (event: SQSEvent) => {
       console.log(
         "Environment variables:",
         JSON.stringify({
-          productsTableName,
-          stocksTableName,
-          createProductTopicArn,
+          isProductsTableName: Boolean(productsTableName),
+          isStocksTableName: Boolean(stocksTableName),
+          isCreateProductTopicArn: Boolean(createProductTopicArn),
         })
       );
 
@@ -41,7 +42,7 @@ export const handler = async (event: SQSEvent) => {
     }
 
     const dynamoDBTransactItems: TransactWriteItem[] = [];
-    const snsItems = [];
+    const snsItems: SnsItem[] = [];
 
     for (const sqsRecord of event.Records) {
       const incomingProductData = JSON.parse(sqsRecord?.body || "{}");
