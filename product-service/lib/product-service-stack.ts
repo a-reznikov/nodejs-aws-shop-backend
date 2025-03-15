@@ -100,7 +100,7 @@ export class AlexProductServiceStack extends cdk.Stack {
     createProductTopic.addSubscription(
       new EmailSubscription(mainEmail, {
         filterPolicyWithMessageBody: {
-          price: FilterOrPolicy.filter(
+          "product.price": FilterOrPolicy.filter(
             SubscriptionFilter.numericFilter({ greaterThanOrEqualTo: 30 })
           ),
         },
@@ -110,7 +110,7 @@ export class AlexProductServiceStack extends cdk.Stack {
     createProductTopic.addSubscription(
       new EmailSubscription(secondaryEmail, {
         filterPolicyWithMessageBody: {
-          price: FilterOrPolicy.filter(
+          "product.price": FilterOrPolicy.filter(
             SubscriptionFilter.numericFilter({ lessThan: 30 })
           ),
         },

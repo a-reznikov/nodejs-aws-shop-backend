@@ -1,9 +1,8 @@
-import { DynamoDBClient, TransactWriteItem } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
   TransactWriteCommand,
 } from "@aws-sdk/lib-dynamodb";
-import { marshall } from "@aws-sdk/util-dynamodb";
 import { headers } from "./api/constants";
 import {
   handleUnexpectedError,
@@ -41,7 +40,7 @@ export const handler = async (event: SQSEvent) => {
       );
     }
 
-    const dynamoDBTransactItems: TransactWriteItem[] = [];
+    const dynamoDBTransactItems = [];
     const snsItems: SnsItem[] = [];
 
     for (const sqsRecord of event.Records) {
@@ -79,14 +78,14 @@ export const handler = async (event: SQSEvent) => {
       const putProduct = {
         Put: {
           TableName: productsTableName,
-          Item: marshall(newProduct),
+          Item: newProduct,
         },
       };
 
       const putStock = {
         Put: {
           TableName: stocksTableName,
-          Item: marshall(newStock),
+          Item: newStock,
         },
       };
 
@@ -106,27 +105,32 @@ export const handler = async (event: SQSEvent) => {
       })
     );
 
-    const message = `New product${
-      snsItems.length > 1 ? "s have" : " has"
-    } been added to db`;
+    const snsPublishMessages = snsItems.map((snsItem) => {
+      const messageBody = JSON.stringify({
+        message: `New product has been added: ${snsItem.title}`,
+        product: snsItem,
+      });
 
-    await snsClient.send(
-      new PublishCommand({
-        Subject: "Product Notification",
-        TopicArn: createProductTopicArn,
-        Message: JSON.stringify({
-          message,
-          products: snsItems,
-          count: snsItems.length,
-        }),
-      })
-    );
+      console.log("Publishing message to SNS:", messageBody);
+
+      return snsClient.send(
+        new PublishCommand({
+          Subject: "Product Notification",
+          TopicArn: createProductTopicArn,
+          Message: messageBody,
+        })
+      );
+    });
+
+    const snsPublishOutputs = await Promise.all(snsPublishMessages);
+
+    console.log("snsPublishOutputs", snsPublishOutputs);
 
     return {
       statusCode: 201,
       headers,
       body: JSON.stringify({
-        message,
+        snsItems,
       }),
     };
   } catch (error: any) {
