@@ -89,6 +89,9 @@ export const handler = async (event: SQSEvent) => {
         },
       };
 
+      console.log("putProduct", JSON.stringify(putProduct));
+      console.log("putStock", JSON.stringify(putStock));
+
       dynamoDBTransactItems.push(putProduct, putStock);
 
       const snsItem = {
