@@ -15,12 +15,14 @@ export class AlexImportServiceStack extends cdk.Stack {
     super(scope, id, props);
 
     const catalogItemsQueueArn = process.env.CATALOG_ITEM_QUEUE_ARN;
+    const authLambdaArn = process.env.AUTH_LAMBDA_ARN;
 
-    if (!catalogItemsQueueArn) {
+    if (!(catalogItemsQueueArn && authLambdaArn)) {
       console.log(
         "Environment variables:",
         JSON.stringify({
           isCatalogItemsQueueArn: Boolean(catalogItemsQueueArn),
+          isAuthLambdaArn: Boolean(authLambdaArn),
         })
       );
 
@@ -75,6 +77,12 @@ export class AlexImportServiceStack extends cdk.Stack {
           CATALOG_ITEM_QUEUE_URL: catalogItemsQueue.queueUrl,
         },
       }
+    );
+
+    const basicAuthorizerLambda = Function.fromFunctionArn(
+      this,
+      "basicAuthorizerHandler",
+      authLambdaArn
     );
 
     const importProductsPolicy = new iam.PolicyStatement({
