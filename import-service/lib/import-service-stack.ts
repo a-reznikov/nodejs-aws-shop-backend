@@ -4,7 +4,13 @@ import * as s3 from "aws-cdk-lib/aws-s3";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 import { Code, Runtime, Function } from "aws-cdk-lib/aws-lambda";
-import { Cors, LambdaIntegration, RestApi } from "aws-cdk-lib/aws-apigateway";
+import {
+  Cors,
+  LambdaIntegration,
+  RestApi,
+  RequestAuthorizer,
+  AuthorizationType,
+} from "aws-cdk-lib/aws-apigateway";
 import { LambdaDestination } from "aws-cdk-lib/aws-s3-notifications";
 import { Queue } from "aws-cdk-lib/aws-sqs";
 
@@ -119,9 +125,18 @@ export class AlexImportServiceStack extends cdk.Stack {
 
     const importProductsFileEndpoint = api.root.addResource("import");
 
+    const authorizer = new RequestAuthorizer(this, "BasicAuthorizer", {
+      handler: basicAuthorizerLambda,
+      identitySources: ["method.request.header.Authorization"],
+    });
+
     importProductsFileEndpoint.addMethod(
       "GET",
-      new LambdaIntegration(importProductsFileLambda)
+      new LambdaIntegration(importProductsFileLambda),
+      {
+        authorizationType: AuthorizationType.CUSTOM,
+        authorizer: authorizer,
+      }
     );
   }
 }
