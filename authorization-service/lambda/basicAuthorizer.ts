@@ -4,7 +4,7 @@ export const handler = async (event: any) => {
   try {
     console.log("Event basicAuthorizer:", event);
 
-    const correctPassword = process.env["a-reznikov"];
+    const correctPassword = process.env.a_reznikov;
 
     if (!correctPassword) {
       throw Error(

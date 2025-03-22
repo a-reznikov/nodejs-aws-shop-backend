@@ -9,7 +9,7 @@ export class AlexAuthorizationServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const githubAccountLogin = process.env["a-reznikov"];
+    const githubAccountLogin = process.env.a_reznikov;
 
     if (!githubAccountLogin) {
       throw Error(
@@ -22,7 +22,7 @@ export class AlexAuthorizationServiceStack extends cdk.Stack {
       code: Code.fromAsset("lambda"),
       handler: "basicAuthorizer.handler",
       environment: {
-        "a-reznikov": githubAccountLogin,
+        a_reznikov: githubAccountLogin,
       },
     });
   }
