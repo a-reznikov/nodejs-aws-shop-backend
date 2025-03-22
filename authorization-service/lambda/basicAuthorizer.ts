@@ -27,19 +27,23 @@ export const handler = async (event: any) => {
     console.log("decodedCredentials", decodedCredentials);
 
     const [username, password] = decodedCredentials.split(":");
+    const passwordByUserName = process.env?.[username];
 
-    const correctPassword = process.env.a_reznikov;
+    console.log("passwordByUserName", passwordByUserName);
 
-    if (!correctPassword) {
-      throw Error(
-        "Failed to process basicAuthorizer. Environment variables are not defined!"
-      );
+    if (!passwordByUserName) {
+      console.log("passwordByUserName was not found");
+
+      return {
+        statusCode: 403,
+        body: JSON.stringify({
+          message: "Forbidden: passwordByUserName not found",
+        }),
+      };
     }
 
-    console.log("correctPassword", correctPassword);
-
-    if (password === correctPassword) {
-      return {
+    if (password === passwordByUserName) {
+      const authorizerResponse = {
         principalId: username,
         policyDocument: {
           Version: "2012-10-17",
@@ -52,10 +56,14 @@ export const handler = async (event: any) => {
           ],
         },
       };
+
+      console.log("authorizerResponse", JSON.stringify(authorizerResponse));
+
+      return authorizerResponse;
     } else {
       return {
         statusCode: 403,
-        body: JSON.stringify({ message: "Forbidden" }),
+        body: JSON.stringify({ message: "Forbidden: incorrect password" }),
       };
     }
   } catch (error) {
