@@ -5,13 +5,13 @@ export const handler = async (event: any) => {
 
   console.log("authHeader", authHeader);
 
-  if (!(authHeader && authHeader.startsWith("Basic "))) {
-    throw new Error("Unauthorized");
-  }
-
-  const encodedCredentials = authHeader.split(" ")[1];
+  const encodedCredentials = authHeader?.split("Basic ")?.[1];
 
   console.log("encodedCredentials", encodedCredentials);
+
+  if (!(encodedCredentials && encodedCredentials !== "null")) {
+    throw new Error("Unauthorized");
+  }
 
   const decodedCredentials = Buffer.from(encodedCredentials, "base64").toString(
     "utf-8"
