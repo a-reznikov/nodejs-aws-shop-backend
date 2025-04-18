@@ -1,10 +1,6 @@
 import { URL } from 'node:url'
 
 export default async function (fastify, opts) {
-  fastify.addContentTypeParser('*', { parseAs: 'buffer' }, (req, body, done) => {
-    done(null, body)
-  })
-
   fastify.get('/', async function (request, reply) {
     return { root: true }
   })
@@ -28,35 +24,25 @@ export default async function (fastify, opts) {
       targetUrl.searchParams.append(key, value)
     });
 
-    let bodyContent = undefined;
-    if (request.method !== 'GET' && request.body && Buffer.isBuffer(request.body)) {
-      const bodyString = request.body.toString('utf8');
-      try {
-        if (request.headers['content-type'] && request.headers['content-type'].includes('application/json')) {
-          bodyContent = JSON.parse(bodyString);
-        } else {
-          bodyContent = bodyString;
-        }
-      } catch (e) {
-        console.error('Failed to parse request body:', e);
-        bodyContent = bodyString;
-      }
-    }
+    console.log('request.body', request.body);
 
     const fetchOptions = {
       method: request.method,
-      headers: { ...request.headers }
+      headers: { ...request.headers },
     };
 
-    if (request.method !== 'GET' && bodyContent !== undefined) {
-      if (typeof bodyContent === 'object') {
-        fetchOptions.body = JSON.stringify(bodyContent);
-      } else {
-        fetchOptions.body = bodyContent;
-      }
-    }
-
     delete fetchOptions.headers.host;
+
+    if (request.method !== 'GET' && request.body) {
+      fetchOptions.headers['content-type'] = 'application/json';
+
+      const bodyString = typeof request.body === 'object'
+        ? JSON.stringify(request.body)
+        : request.body;
+
+      fetchOptions.body = bodyString;
+      fetchOptions.headers['content-length'] = Buffer.byteLength(bodyString).toString();
+    }
 
     console.log('targetUrl', targetUrl.toString());
     console.log('fetchOptions', JSON.stringify(fetchOptions, null, 2));
@@ -65,16 +51,10 @@ export default async function (fastify, opts) {
       const response = await fetch(targetUrl, fetchOptions);
       console.log('response status:', response.status);
 
-      reply.code(response.status);
-
-      for (const [key, value] of response.headers.entries()) {
-        reply.header(key, value);
-      }
-
-      const responseBuffer = await response.arrayBuffer();
-      return Buffer.from(responseBuffer);
+      return response;
     } catch (error) {
       fastify.log.error(`Error forwarding request: ${error.message}`);
+      console.error('Full error details:', error);
 
       return reply.code(500).send({
         error: 'Internal Server Error',
