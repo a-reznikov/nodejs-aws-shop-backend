@@ -3,28 +3,31 @@ export default async function (fastify, opts) {
     return { root: true }
   })
 
-  // Handle dynamic routing based on service name
-  fastify.all('/:service', async function (request, reply) {
+  fastify.all('/:service/*', async function (request, reply) {
     const { service } = request.params
     const recipientURL = process.env[service]
 
-    // Check if the service exists in environment variables
     if (!recipientURL) {
-      return reply.code(404).send({
-        error: 'Not Found',
-        message: `Service "${service}" not found in configuration`,
-        statusCode: 404
+      return reply.code(502).send({
+        error: 'Bad Gateway',
+        message: 'Cannot process request',
+        statusCode: 502
       })
     }
 
-    // Log successful routing for debugging
-    fastify.log.info(`Routing request to service: ${service}, URL: ${recipientURL}`)
+    const path = request.url.slice(request.url.indexOf(`/${service}/`) + service.length + 2)
+    const targetPath = `${recipientURL}/${path}`
 
-    // For now, just return information about what we'd forward to
+    fastify.log.info(`Routing request to service: ${service}, URL: ${targetPath}`)
+
     return {
       success: true,
-      message: `Will route to "${service}" service`,
+      message: `Will route to "${service}" service with path`,
+      originalUrl: request.url,
+      service,
+      path,
       recipientURL,
+      targetPath,
       method: request.method,
       query: request.query
     }
