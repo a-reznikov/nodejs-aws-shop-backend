@@ -22,12 +22,14 @@ export default async function (fastify, opts) {
     }
 
     try {
-      const path = request.url.slice(request.url.indexOf(`/${service}/`) + service.length + 2)
-      const targetUrl = new URL(path, recipientURL)
+      const path = request.url.slice(request.url.indexOf(`/${service}/`) + service.length + 2);
+      const targetUrl = new URL(`${recipientURL}/${path}`);
 
       Object.entries(request.query).forEach(([key, value]) => {
         targetUrl.searchParams.append(key, value)
       })
+
+      console.log('targetUrl', targetUrl);
 
       const fetchOptions = {
         method: request.method,
