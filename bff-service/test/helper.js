@@ -1,7 +1,7 @@
 // This file contains code that we reuse
 // between our tests.
 
-import { build as buildApplication } from 'fastify-cli/helper'
+import { build as buildApplication } from 'fastify-cli/helper.js'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 

@@ -1,5 +1,3 @@
-'use strict'
-
 import { test } from 'node:test'
 import assert from 'node:assert'
 import { build } from '../helper.js'
