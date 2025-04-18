@@ -76,7 +76,14 @@ export default async function (fastify, opts) {
       headers: { ...request.headers },
     };
 
-    delete fetchOptions.headers.host;
+    const headersToRemove = [
+      'host', 'connection', 'upgrade-insecure-requests',
+      'content-length', 'transfer-encoding', 'keep-alive'
+    ];
+
+    headersToRemove.forEach(header => {
+      delete fetchOptions.headers[header];
+    });
 
     if (request.method !== 'GET' && request.body) {
       fetchOptions.headers['content-type'] = 'application/json';
@@ -113,5 +120,13 @@ export default async function (fastify, opts) {
         statusCode: 500
       });
     }
+  });
+
+  fastify.all('*', async function (request, reply) {
+    return reply.code(502).send({
+      error: 'Bad Gateway',
+      message: 'Invalid service or path',
+      statusCode: 502
+    });
   });
 }
