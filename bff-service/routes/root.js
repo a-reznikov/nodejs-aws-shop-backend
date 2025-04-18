@@ -1,5 +1,30 @@
 import { URL } from 'node:url'
 
+const cache = {
+  data: {},
+  timestamps: {},
+
+  get(key) {
+    const timestamp = this.timestamps[key];
+
+    if (timestamp && Date.now() - timestamp < 120000) {
+      console.log(`Cache found for: ${key}`);
+
+      return this.data[key];
+    }
+    console.log(`Cache not found for: ${key}`);
+
+    return null;
+  },
+
+  set(key, value) {
+    this.data[key] = value;
+    this.timestamps[key] = Date.now();
+
+    console.log(`Cached item: ${key}`);
+  }
+};
+
 export default async function (fastify, opts) {
   fastify.get('/', async function (request, reply) {
     return { root: true }
@@ -8,6 +33,8 @@ export default async function (fastify, opts) {
   fastify.all('/:service/*', async function (request, reply) {
     const { service } = request.params;
     const recipientURL = process.env[service];
+
+    console.log('cache', cache);
 
     if (!recipientURL) {
       return reply.code(502).send({
@@ -23,6 +50,24 @@ export default async function (fastify, opts) {
     Object.entries(request.query).forEach(([key, value]) => {
       targetUrl.searchParams.append(key, value)
     });
+
+    const isProductsListRequest =
+      service === 'product' &&
+      request.method === 'GET' &&
+      path === 'products';
+
+    console.log('isProductsListRequest', isProductsListRequest);
+
+    if (isProductsListRequest) {
+      const cacheKey = targetUrl.toString();
+      const cachedData = cache.get(cacheKey);
+
+      if (cachedData) {
+        console.log('Return cachedData');
+
+        return cachedData;
+      }
+    }
 
     console.log('request.body', request.body);
 
@@ -51,9 +96,15 @@ export default async function (fastify, opts) {
       const response = await fetch(targetUrl, fetchOptions);
       console.log('response status:', response.status);
 
+      if (isProductsListRequest && response.status === 200) {
+        const clonedResponse = response.clone();
+        const responseData = await clonedResponse.json();
+
+        cache.set(targetUrl.toString(), responseData);
+      }
+
       return response;
     } catch (error) {
-      fastify.log.error(`Error forwarding request: ${error.message}`);
       console.error('Full error details:', error);
 
       return reply.code(500).send({
