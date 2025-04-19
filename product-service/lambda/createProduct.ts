@@ -19,10 +19,6 @@ export const handler = async (event: any) => {
 
     const body = JSON.parse(event?.body || "{}");
     const { title, description, price, count } = body;
-    const image =
-      body?.image && typeof body?.image === "string"
-        ? body?.image
-        : DEFAULT_IMAGE;
 
     if (!isValidProductCreateData({ title, description, price, count })) {
       console.log(
@@ -35,6 +31,11 @@ export const handler = async (event: any) => {
         body: "Validation Error. Required fields are missing or have invalid types.",
       };
     }
+
+    const image =
+      body?.image && typeof body.image === "string"
+        ? body.image
+        : DEFAULT_IMAGE;
 
     const id = randomUUID();
 
