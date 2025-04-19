@@ -10,4 +10,5 @@ export type ProductCreateData = {
   description: string;
   price: number;
   count: number;
+  image?: string;
 };

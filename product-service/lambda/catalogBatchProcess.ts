@@ -3,7 +3,7 @@ import {
   DynamoDBDocumentClient,
   TransactWriteCommand,
 } from "@aws-sdk/lib-dynamodb";
-import { headers } from "./api/constants";
+import { DEFAULT_IMAGE, headers } from "./api/constants";
 import {
   handleUnexpectedError,
   isValidProductCreateData,
@@ -61,6 +61,11 @@ export const handler = async (event: SQSEvent) => {
       }
 
       const { title, description, price, count } = incomingProductData;
+      const image =
+        incomingProductData?.image &&
+        typeof incomingProductData.image === "string"
+          ? incomingProductData.image
+          : DEFAULT_IMAGE;
 
       const id = randomUUID();
 
@@ -69,6 +74,7 @@ export const handler = async (event: SQSEvent) => {
         title,
         description,
         price,
+        image,
       };
       const newStock = { product_id: id, count };
 

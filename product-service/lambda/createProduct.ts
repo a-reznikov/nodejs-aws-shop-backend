@@ -3,7 +3,7 @@ import {
   DynamoDBDocumentClient,
   TransactWriteCommand,
 } from "@aws-sdk/lib-dynamodb";
-import { headers } from "./api/constants";
+import { headers, DEFAULT_IMAGE } from "./api/constants";
 import {
   handleUnexpectedError,
   isValidProductCreateData,
@@ -21,6 +21,10 @@ export const handler = async (event: any) => {
     const { title, description, price, count } = body;
 
     if (!isValidProductCreateData({ title, description, price, count })) {
+      console.log(
+        "Validation Error. Required fields are missing or have invalid types."
+      );
+
       return {
         statusCode: 400,
         headers,
@@ -28,9 +32,14 @@ export const handler = async (event: any) => {
       };
     }
 
+    const image =
+      body?.image && typeof body.image === "string"
+        ? body.image
+        : DEFAULT_IMAGE;
+
     const id = randomUUID();
 
-    const newProduct = { id, title, description, price };
+    const newProduct = { id, title, description, price, image };
     const newStock = { product_id: id, count };
 
     console.log("New product", newProduct);
