@@ -26,6 +26,19 @@ const cache = {
 };
 
 export default async function (fastify, opts) {
+  fastify.addHook('onRequest', (request, reply, done) => {
+    reply.header('Access-Control-Allow-Origin', '*');
+    reply.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    if (request.method === 'OPTIONS') {
+      reply.code(204).send();
+      return;
+    }
+
+    done();
+  });
+
   fastify.get('/', async function (request, reply) {
     return { root: true }
   })
