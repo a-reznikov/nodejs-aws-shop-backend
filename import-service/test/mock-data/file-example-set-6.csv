@@ -1,2 +1,3 @@
-title,description,price,count
-"Test-6","Test",30,1000
+title,description,price,count,image
+Without Image, Test,6000,6000,
+With Image, Test,7000,7000,https://m.media-amazon.com/images/I/71ptoyWH8dL.jpg
